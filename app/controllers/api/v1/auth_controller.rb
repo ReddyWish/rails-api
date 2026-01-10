@@ -6,13 +6,15 @@ module Api
       wrap_parameters false
       skip_before_action :authenticate_user, only: [ :signup, :login ], raise: false
 
+      AUTH_EXPIRATION = 24.hours
+
       def signup
         @user = User.new(user_params)
 
         if @user.save
-          token = JsonWebToken.encode(user_id: @user.id)
+          token = JsonWebToken.encode({ user_id: @user.id }, AUTH_EXPIRATION.from_now)
 
-          set_token_cookie(token)
+          set_token_cookie(token, AUTH_EXPIRATION)
 
           render json: {
             user: user_response(@user),
@@ -29,8 +31,8 @@ module Api
         @user = User.find_by("LOWER(email) = ?", params[:email].downcase)
 
         if @user&.authenticate(params[:password])
-          token = JsonWebToken.encode(user_id: @user.id)
-          set_token_cookie(token)
+          token = JsonWebToken.encode({ user_id: @user.id }, AUTH_EXPIRATION.from_now)
+          set_token_cookie(token, AUTH_EXPIRATION)
           render json: {
             user: user_response(@user),
             message: "Logged in successfully"
@@ -80,13 +82,13 @@ module Api
         params.permit(:name, :email, :password, :password_confirmation)
       end
 
-      def set_token_cookie(token)
+      def set_token_cookie(token, expiration_duration)
         cookies.signed[:token] = {
           value: token,
           httponly: true,
           secure: Rails.env.production?,
           same_site: :lax,
-          expires: 24.hours.from_now
+          expires: expiration_duration.from_now
         }
       end
 
