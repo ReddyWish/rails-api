@@ -12,6 +12,14 @@ Rails.application.routes.draw do
       post "/login", to: "auth#login"
       delete "/logout", to: "auth#logout"
       get "/me", to: "auth#me"
+
+      get "me/posts", to: "posts#my_posts"
+
+      resources :posts, only: [ :index, :show, :create, :update, :destroy ]
+
+      resources :users, only: [] do
+        resources :posts, only: [ :index ]
+      end
     end
   end
 end
