@@ -21,9 +21,7 @@ module Api
             message: "Account created successfully"
           }, status: :created
         else
-          render json: {
-            errors: @user.errors.full_messages
-          }, status: :unprocessable_entity
+          render_error(@user.errors, status: :unprocessable_entity)
         end
       end
 
@@ -38,9 +36,7 @@ module Api
             message: "Logged in successfully"
           }, status: :ok
         else
-          render json: {
-            error: "Invalid email or password"
-          }, status: :unauthorized
+          render_unauthorized("Invalid email or password")
         end
       end
 

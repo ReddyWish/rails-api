@@ -31,5 +31,7 @@ module BlogApi
 
     # Add cookies middleware for cookie-based authentication
     config.middleware.use ActionDispatch::Cookies
+
+    config.autoload_paths << Rails.root.join("app/errors")
   end
 end
