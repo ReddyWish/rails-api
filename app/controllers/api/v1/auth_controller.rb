@@ -17,7 +17,7 @@ module Api
           set_token_cookie(token, AUTH_EXPIRATION)
 
           render json: {
-            user: user_response(@user),
+            user: UserSerializer.new(@user).as_json,
             message: "Account created successfully"
           }, status: :created
         else
@@ -34,7 +34,7 @@ module Api
           token = JsonWebToken.encode({ user_id: @user.id }, AUTH_EXPIRATION.from_now)
           set_token_cookie(token, AUTH_EXPIRATION)
           render json: {
-            user: user_response(@user),
+            user: UserSerializer.new(@user).as_json,
             message: "Logged in successfully"
           }, status: :ok
         else
@@ -53,27 +53,7 @@ module Api
       end
 
       def me
-        token = cookies.signed[:token]
-
-        payload = JsonWebToken.decode(token)
-
-        if payload
-          @user = User.find_by(id: payload[:user_id])
-
-          if @user
-            render json: {
-              user: user_response(@user)
-            }, status: :ok
-          else
-            render json: {
-              error: "User not found"
-            }, status: :not_found
-          end
-        else
-          render json: {
-            error: "Not authenticated"
-          }, status: :unauthorized
-        end
+       render json: UserSerializer.new(current_user).as_json, status: :ok
       end
 
       private
@@ -89,15 +69,6 @@ module Api
           secure: Rails.env.production?,
           same_site: :lax,
           expires: expiration_duration.from_now
-        }
-      end
-
-      def user_response(user)
-        {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          created_at: user.created_at
         }
       end
     end

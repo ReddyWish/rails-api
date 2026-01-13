@@ -15,13 +15,13 @@ module Api
         end
 
         render json: {
-          posts: @posts.map { |post| post_response(post) }
+          posts: @posts.map { |post| PostSerializer.new(post).as_json }
         }
       end
 
       def show
         render json: {
-          post: post_response(@post)
+          post: PostSerializer.new(@post).as_json
         }, status: :ok
       end
 
@@ -30,7 +30,7 @@ module Api
 
         if @post.save
           render json: {
-            post: post_response(@post),
+            post: PostSerializer.new(@post).as_json,
             message: "Post created successfully"
           }, status: :created
         else
@@ -43,7 +43,7 @@ module Api
       def update
         if @post.update(post_params)
           render json: {
-            post: post_response(@post),
+            post: PostSerializer.new(@post).as_json,
             message: "Post updated successfully"
           }, status: :ok
         else
@@ -65,7 +65,7 @@ module Api
         @posts = current_user.posts.includes(:user).recent
 
         render json: {
-          posts: @posts.map { |post| post_response(post) }
+          posts: @posts.map { |post| PostSerializer.new(post).as_json }
         }, status: :ok
       end
 
@@ -87,21 +87,6 @@ module Api
         @post = Post.includes(:user).find(params[:id])
       rescue ActiveRecord::RecordNotFound
         render json: { error: "Post not found" }, status: :not_found
-      end
-
-      def post_response(post)
-        {
-          id: post.id,
-          title: post.title,
-          description: post.description,
-          author: {
-            id: post.user.id,
-            name: post.user.name,
-            email: post.user.email
-          },
-          created_at: post.created_at,
-          updated_at: post.updated_at
-        }
       end
     end
   end
